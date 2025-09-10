@@ -3,6 +3,7 @@ import { GraduationCap, Search, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { signInWithGoogle } from "@/lib/firebase";
 
 export function NavigationHeader() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -56,13 +57,13 @@ export function NavigationHeader() {
             <div className="hidden md:flex items-center space-x-4">
               <Button 
                 variant="ghost"
-                onClick={() => window.location.href = '/api/login'}
+                onClick={signInWithGoogle}
                 data-testid="button-sign-in"
               >
                 Sign In
               </Button>
               <Button 
-                onClick={() => window.location.href = '/api/login'}
+                onClick={signInWithGoogle}
                 data-testid="button-get-started"
               >
                 Get Started
@@ -86,13 +87,13 @@ export function NavigationHeader() {
                     <Button 
                       variant="outline" 
                       className="w-full"
-                      onClick={() => window.location.href = '/api/login'}
+                      onClick={signInWithGoogle}
                     >
                       Sign In
                     </Button>
                     <Button 
                       className="w-full"
-                      onClick={() => window.location.href = '/api/login'}
+                      onClick={signInWithGoogle}
                     >
                       Get Started
                     </Button>

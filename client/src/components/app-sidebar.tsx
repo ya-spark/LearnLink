@@ -1,6 +1,7 @@
 import { GraduationCap, Home, BookOpen, Users, MessageCircle, Settings, BarChart3, Brain, CreditCard } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { logOut } from "@/lib/firebase";
 import {
   Sidebar,
   SidebarContent,
@@ -201,7 +202,7 @@ export function AppSidebar() {
           variant="outline" 
           size="sm" 
           className="w-full mt-2"
-          onClick={() => window.location.href = '/api/logout'}
+          onClick={logOut}
           data-testid="button-logout"
         >
           Logout
