@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import Stripe from "stripe";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { isAuthenticated, type AuthenticatedRequest } from "./firebaseAuth";
 import { 
   provideTutoring, 
   gradeAssignment, 
@@ -34,18 +34,32 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
-
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  app.post('/api/auth/user', async (req, res) => {
+    try {
+      const { uid, email, firstName, lastName, profileImageUrl } = req.body;
+      const user = await storage.upsertUser({
+        id: uid,
+        email,
+        firstName,
+        lastName,
+        profileImageUrl,
+      });
+      res.json(user);
+    } catch (error) {
+      console.error("Error creating/updating user:", error);
+      res.status(500).json({ message: "Failed to create/update user" });
     }
   });
 
@@ -78,9 +92,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/courses', isAuthenticated, async (req: any, res) => {
+  app.post('/api/courses', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const courseData = insertCourseSchema.parse({
         ...req.body,
         instructorId: userId,
@@ -105,7 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/courses/:id/content', isAuthenticated, async (req, res) => {
+  app.post('/api/courses/:id/content', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
       const contentData = insertCourseContentSchema.parse({
         ...req.body,
@@ -121,9 +135,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Enrollment routes
-  app.post('/api/enrollments', isAuthenticated, async (req: any, res) => {
+  app.post('/api/enrollments', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const enrollmentData = insertEnrollmentSchema.parse({
         ...req.body,
         studentId: userId,
@@ -137,9 +151,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/my-enrollments', isAuthenticated, async (req: any, res) => {
+  app.get('/api/my-enrollments', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const enrollments = await storage.getStudentEnrollments(userId);
       res.json(enrollments);
     } catch (error) {
@@ -173,9 +187,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI features routes
-  app.post('/api/ai/tutoring', isAuthenticated, async (req: any, res) => {
+  app.post('/api/ai/tutoring', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const user = await storage.getUser(userId);
       
       if (!user || (user.aiCredits || 0) < 1) {
@@ -200,9 +214,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/ai/grade', isAuthenticated, async (req: any, res) => {
+  app.post('/api/ai/grade', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const user = await storage.getUser(userId);
       
       if (!user || (user.aiCredits || 0) < 2) {
@@ -227,9 +241,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/ai/generate-content', isAuthenticated, async (req: any, res) => {
+  app.post('/api/ai/generate-content', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const user = await storage.getUser(userId);
       
       if (!user || (user.aiCredits || 0) < 3) {
@@ -255,9 +269,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Messages routes
-  app.get('/api/messages', isAuthenticated, async (req: any, res) => {
+  app.get('/api/messages', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const { courseId, conversationWith } = req.query;
       
       const messages = await storage.getMessages(userId, {
@@ -272,9 +286,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/messages', isAuthenticated, async (req: any, res) => {
+  app.post('/api/messages', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const messageData = insertMessageSchema.parse({
         ...req.body,
         senderId: userId,
@@ -293,9 +307,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Progress tracking routes
-  app.get('/api/progress', isAuthenticated, async (req: any, res) => {
+  app.get('/api/progress', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const { courseId } = req.query;
       
       const progress = await storage.getStudentProgress(userId, courseId as string);
@@ -328,9 +342,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/assessments/:id/submit', isAuthenticated, async (req: any, res) => {
+  app.post('/api/assessments/:id/submit', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const submissionData = insertAssessmentSubmissionSchema.parse({
         ...req.body,
         assessmentId: req.params.id,
@@ -356,9 +370,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/courses/:id/reviews', isAuthenticated, async (req: any, res) => {
+  app.post('/api/courses/:id/reviews', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const reviewData = insertCourseReviewSchema.parse({
         ...req.body,
         courseId: req.params.id,
@@ -389,9 +403,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/get-or-create-subscription', isAuthenticated, async (req: any, res) => {
+  app.post('/api/get-or-create-subscription', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       let user = await storage.getUser(userId);
 
       if (!user) {
@@ -445,9 +459,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Credits purchase
-  app.post('/api/purchase-credits', isAuthenticated, async (req: any, res) => {
+  app.post('/api/purchase-credits', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.uid;
       const { credits, amount } = req.body;
       
       // Create payment intent for credit purchase

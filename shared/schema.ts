@@ -330,12 +330,6 @@ export const messagesRelations = relations(messages, ({ one, many }) => ({
     fields: [messages.courseId],
     references: [courses.id],
   }),
-  parentMessage: one(messages, {
-    fields: [messages.parentMessageId],
-    references: [messages.id],
-    relationName: 'messageReplies',
-  }),
-  replies: many(messages, { relationName: 'messageReplies' }),
   aiTransactions: many(aiCreditTransactions),
 }));
 
