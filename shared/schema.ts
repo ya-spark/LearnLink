@@ -15,16 +15,7 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Session storage table (mandatory for Replit Auth)
-export const sessions = pgTable(
-  "sessions",
-  {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
-  },
-  (table) => [index("IDX_session_expire").on(table.expire)],
-);
+// Note: Firebase handles authentication, no sessions table needed
 
 // Enums
 export const userRoleEnum = pgEnum('user_role', ['student', 'parent', 'educator', 'content_creator', 'administrator']);
@@ -33,9 +24,9 @@ export const subscriptionStatusEnum = pgEnum('subscription_status', ['free', 'pr
 export const contentTypeEnum = pgEnum('content_type', ['lesson', 'assignment', 'assessment', 'resource']);
 export const messageTypeEnum = pgEnum('message_type', ['text', 'file', 'ai_response']);
 
-// User storage table (mandatory for Replit Auth)
+// User storage table (Firebase Auth compatible)
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey(), // Firebase UID, no default needed
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
