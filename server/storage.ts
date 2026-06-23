@@ -43,13 +43,12 @@ import {
   type InsertParentStudentRelation,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql, like, ilike, or, inArray } from "drizzle-orm";
+import { eq, and, desc, sql, like, or, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-  updateUserStripeInfo(userId: string, stripeInfo: { customerId: string; subscriptionId: string }): Promise<User>;
   updateUserAiCredits(userId: string, credits: number): Promise<User>;
   
   // Institute operations
@@ -132,19 +131,6 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserStripeInfo(userId: string, stripeInfo: { customerId: string; subscriptionId: string }): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({
-        stripeCustomerId: stripeInfo.customerId,
-        stripeSubscriptionId: stripeInfo.subscriptionId,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId))
-      .returning();
-    return user;
-  }
-
   async updateUserAiCredits(userId: string, credits: number): Promise<User> {
     const [user] = await db
       .update(users)
@@ -208,11 +194,12 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (filters?.search) {
+      const searchPattern = `%${filters.search}%`;
       query = query.where(
         or(
-          ilike(courses.title, `%${filters.search}%`),
-          ilike(courses.description, `%${filters.search}%`)
-        )
+          like(courses.title, searchPattern),
+          like(courses.description, searchPattern),
+        ),
       );
     }
     

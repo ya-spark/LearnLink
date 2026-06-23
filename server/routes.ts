@@ -1,7 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import Stripe from "stripe";
 import { storage } from "./storage";
 import { isAuthenticated, type AuthenticatedRequest } from "./firebaseAuth";
 import { 
@@ -24,14 +23,6 @@ import {
   insertCourseReviewSchema,
   insertParentStudentRelationSchema
 } from "@shared/schema";
-
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
-}
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16",
-});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
@@ -384,100 +375,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error adding review:", error);
       res.status(500).json({ message: "Failed to add review" });
-    }
-  });
-
-  // Payment routes (Stripe)
-  app.post("/api/create-payment-intent", async (req, res) => {
-    try {
-      const { amount } = req.body;
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
-        currency: "usd",
-      });
-      res.json({ clientSecret: paymentIntent.client_secret });
-    } catch (error: any) {
-      res
-        .status(500)
-        .json({ message: "Error creating payment intent: " + error.message });
-    }
-  });
-
-  app.post('/api/get-or-create-subscription', isAuthenticated, async (req: AuthenticatedRequest, res) => {
-    try {
-      const userId = req.user.uid;
-      let user = await storage.getUser(userId);
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      if (user.stripeSubscriptionId) {
-        const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-
-        res.send({
-          subscriptionId: subscription.id,
-          clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
-        });
-
-        return;
-      }
-      
-      if (!user.email) {
-        throw new Error('No user email on file');
-      }
-
-      const customer = await stripe.customers.create({
-        email: user.email,
-        name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-      });
-
-      user = await storage.updateUserStripeInfo(user.id, { customerId: customer.id, subscriptionId: '' });
-
-      const subscription = await stripe.subscriptions.create({
-        customer: customer.id,
-        items: [{
-          // STRIPE_PRICE_ID will need to be set by the user
-          price: process.env.STRIPE_PRICE_ID || 'price_default',
-        }],
-        payment_behavior: 'default_incomplete',
-        expand: ['latest_invoice.payment_intent'],
-      });
-
-      await storage.updateUserStripeInfo(user.id, {
-        customerId: customer.id, 
-        subscriptionId: subscription.id
-      });
-  
-      res.send({
-        subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
-      });
-    } catch (error: any) {
-      return res.status(400).send({ error: { message: error.message } });
-    }
-  });
-
-  // AI Credits purchase
-  app.post('/api/purchase-credits', isAuthenticated, async (req: AuthenticatedRequest, res) => {
-    try {
-      const userId = req.user.uid;
-      const { credits, amount } = req.body;
-      
-      // Create payment intent for credit purchase
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100),
-        currency: "usd",
-        metadata: {
-          userId,
-          credits: credits.toString(),
-          type: 'ai_credits'
-        }
-      });
-
-      res.json({ clientSecret: paymentIntent.client_secret });
-    } catch (error: any) {
-      res.status(500).json({ message: "Error purchasing credits: " + error.message });
     }
   });
 

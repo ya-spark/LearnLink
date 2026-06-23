@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import { Link } from "wouter";
 
 export function CTASection() {
   const benefits = [
@@ -21,15 +22,15 @@ export function CTASection() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
+            <Button
               size="lg"
               className="bg-white text-primary hover:bg-white/90 transition-all transform hover:scale-105"
-              onClick={() => window.location.href = '/api/login'}
+              asChild
               data-testid="button-start-trial"
             >
-              Start Free Trial
+              <Link href="/dashboard">Start Free Trial</Link>
             </Button>
-            <Button 
+            <Button
               size="lg"
               variant="outline"
               className="border-2 border-white text-white hover:bg-white hover:text-primary transition-all"

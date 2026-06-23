@@ -2,7 +2,7 @@
 
 ## Overview
 
-EduConnect is a comprehensive educational platform that connects students, parents, educators, and content creators in a unified learning ecosystem. The platform provides AI-powered tutoring, content marketplace, progress tracking, and communication tools for K-12+ education. Built with modern web technologies, it features role-based dashboards, subscription management via Stripe, and real-time messaging capabilities.
+EduConnect is a comprehensive educational platform that connects students, parents, educators, and content creators in a unified learning ecosystem. The platform provides AI-powered tutoring, content marketplace, progress tracking, and communication tools for K-12+ education. Built with modern web technologies, it features role-based dashboards and real-time messaging capabilities.
 
 ## User Preferences
 
@@ -19,14 +19,14 @@ Preferred communication style: Simple, everyday language.
 - **Form Handling**: React Hook Form with Zod validation
 
 ### Backend Architecture
-- **Runtime**: Node.js with Express.js server
-- **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
+- **Runtime**: Node.js with Express.js server (temporarily disconnected; frontend runs via Vite)
+- **Database**: SQLite with Drizzle ORM for type-safe database operations
 - **Authentication**: OpenID Connect integration with Replit Auth using Passport.js
 - **Session Management**: Express sessions stored in PostgreSQL with connect-pg-simple
 - **API Design**: RESTful endpoints with WebSocket support for real-time features
 
 ### Data Storage Solutions
-- **Primary Database**: PostgreSQL hosted on Neon with connection pooling
+- **Primary Database**: SQLite file database (`./data/learnlink.db`)
 - **ORM**: Drizzle with migrations managed through drizzle-kit
 - **Schema Design**: Comprehensive educational data model including:
   - User management with role-based access (student, parent, educator, content_creator, administrator)
@@ -44,20 +44,14 @@ Preferred communication style: Simple, everyday language.
 
 ## External Dependencies
 
-### Payment Processing
-- **Stripe**: Complete payment infrastructure for subscription management
-- **Integration**: Stripe Elements for secure payment forms
-- **Features**: Subscription billing, payment method management, and webhook handling
-
 ### AI Services
 - **Anthropic Claude**: AI tutoring, content generation, and automated grading
 - **Model**: Claude Sonnet 4 (claude-sonnet-4-20250514) for latest capabilities
 - **Use Cases**: Personalized tutoring sessions, assignment grading, content recommendations
 
 ### Database Infrastructure
-- **Neon Database**: Serverless PostgreSQL with automatic scaling
-- **Connection**: WebSocket-based connections for optimal performance
-- **Backup**: Automated backups and point-in-time recovery
+- **SQLite**: Local file-based database for development
+- **Migrations**: Run `npm run db:generate` then `npm run db:migrate` after schema changes
 
 ### Development Tools
 - **Replit Integration**: Development environment with live reload and error overlays

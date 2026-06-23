@@ -1,4 +1,5 @@
 import { Check, Coins } from "lucide-react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -97,19 +98,24 @@ export function PricingSection() {
                   ))}
                 </ul>
                 
-                <Button 
+                <Button
                   className="w-full"
                   variant={plan.buttonVariant}
-                  onClick={() => {
-                    if (plan.id === 'institution') {
-                      window.location.href = 'mailto:sales@educonnect.com';
-                    } else {
-                      window.location.href = '/api/login';
-                    }
-                  }}
+                  onClick={
+                    plan.id === "institution"
+                      ? () => {
+                          window.location.href = "mailto:sales@educonnect.com";
+                        }
+                      : undefined
+                  }
+                  asChild={plan.id !== "institution"}
                   data-testid={`button-${plan.id}`}
                 >
-                  {plan.buttonText}
+                  {plan.id === "institution" ? (
+                    plan.buttonText
+                  ) : (
+                    <Link href="/dashboard">{plan.buttonText}</Link>
+                  )}
                 </Button>
               </CardContent>
             </Card>

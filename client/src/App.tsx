@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { useAuth } from "@/hooks/useAuth";
+import { isFrontendOnly } from "@/lib/frontendOnly";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
@@ -14,21 +15,37 @@ import CourseDetail from "@/pages/course-detail";
 import Subscribe from "@/pages/subscribe";
 import NotFound from "@/pages/not-found";
 
+function AuthenticatedRoutes() {
+  return (
+    <>
+      <Route path="/" component={Home} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/marketplace" component={Marketplace} />
+      <Route path="/courses/:id" component={CourseDetail} />
+      <Route path="/subscribe" component={Subscribe} />
+    </>
+  );
+}
+
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
+
+  if (isFrontendOnly) {
+    return (
+      <Switch>
+        <Route path="/landing" component={Landing} />
+        <AuthenticatedRoutes />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
 
   return (
     <Switch>
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/marketplace" component={Marketplace} />
-          <Route path="/courses/:id" component={CourseDetail} />
-          <Route path="/subscribe" component={Subscribe} />
-        </>
+        <AuthenticatedRoutes />
       )}
       <Route component={NotFound} />
     </Switch>
@@ -43,9 +60,11 @@ function AppContent() {
     "--sidebar-width-icon": "4rem",
   };
 
+  const showAppShell = isFrontendOnly || (!isLoading && isAuthenticated);
+
   return (
     <TooltipProvider>
-      {!isLoading && isAuthenticated ? (
+      {showAppShell ? (
         <SidebarProvider style={style as React.CSSProperties}>
           <div className="flex h-screen w-full">
             <AppSidebar />

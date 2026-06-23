@@ -1,4 +1,5 @@
 import { ArrowRight, GraduationCap, Users, Presentation } from "lucide-react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -58,14 +59,16 @@ export function HeroSection() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
+              <Button
                 size="lg"
-                onClick={() => window.location.href = '/api/login'}
+                asChild
                 className="flex items-center space-x-2"
                 data-testid="button-start-learning"
               >
-                <span>Start Learning</span>
-                <ArrowRight className="h-4 w-4" />
+                <Link href="/dashboard">
+                  <span>Start Learning</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </Button>
               <Button 
                 variant="outline" 

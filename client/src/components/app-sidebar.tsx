@@ -1,7 +1,6 @@
 import { GraduationCap, Home, BookOpen, Users, MessageCircle, Settings, BarChart3, Brain, CreditCard } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
-import { logOut } from "@/lib/firebase";
 import {
   Sidebar,
   SidebarContent,
@@ -19,7 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function AppSidebar() {
   const { user } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
 
   // Role-based navigation items
   const getNavigationItems = () => {
@@ -202,7 +201,7 @@ export function AppSidebar() {
           variant="outline" 
           size="sm" 
           className="w-full mt-2"
-          onClick={logOut}
+          onClick={() => setLocation("/landing")}
           data-testid="button-logout"
         >
           Logout

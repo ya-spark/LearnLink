@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { GraduationCap, Search, Menu, X } from "lucide-react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { signInWithGoogle } from "@/lib/firebase";
 
 export function NavigationHeader() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -55,18 +55,11 @@ export function NavigationHeader() {
             )}
             
             <div className="hidden md:flex items-center space-x-4">
-              <Button 
-                variant="ghost"
-                onClick={signInWithGoogle}
-                data-testid="button-sign-in"
-              >
-                Sign In
+              <Button variant="ghost" asChild data-testid="button-sign-in">
+                <Link href="/dashboard">Sign In</Link>
               </Button>
-              <Button 
-                onClick={signInWithGoogle}
-                data-testid="button-get-started"
-              >
-                Get Started
+              <Button asChild data-testid="button-get-started">
+                <Link href="/dashboard">Get Started</Link>
               </Button>
             </div>
 
@@ -84,18 +77,11 @@ export function NavigationHeader() {
                   <a href="#educators" className="text-foreground hover:text-primary transition-colors">For Educators</a>
                   <a href="#resources" className="text-foreground hover:text-primary transition-colors">Resources</a>
                   <div className="border-t pt-4 space-y-2">
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={signInWithGoogle}
-                    >
-                      Sign In
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link href="/dashboard">Sign In</Link>
                     </Button>
-                    <Button 
-                      className="w-full"
-                      onClick={signInWithGoogle}
-                    >
-                      Get Started
+                    <Button className="w-full" asChild>
+                      <Link href="/dashboard">Get Started</Link>
                     </Button>
                   </div>
                 </div>
